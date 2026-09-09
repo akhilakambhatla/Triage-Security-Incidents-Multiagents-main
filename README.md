@@ -13,7 +13,7 @@ A multi-agent security alert triage system built with **LangGraph**. It automate
                            │ escalation?         │ approval needed?
                            ▼                     ▼
                     ┌──────────────┐     ┌──────────────┐
-                    │ Human Review │     │ Human Review  │
+                    │ Human Review │     │ Human Review │
                     │   (HITL)     │     │   (HITL)     │
                     └──────────────┘     └──────────────┘
 ```

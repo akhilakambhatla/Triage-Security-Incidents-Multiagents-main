@@ -134,7 +134,7 @@ async def run_demo(alert_index: int | None = None) -> None:
 
     alerts = [SAMPLE_ALERTS[alert_index]] if alert_index is not None else SAMPLE_ALERTS
 
-    console.print("\n[bold cyan]Security Triage Agent - Multi-Agent Demo[/bold cyan]")
+    console.print("\n[bold cyan]Triage Security Incidents - Multi-Agent Demo[/bold cyan]")
     console.print(f"Processing {len(alerts)} alert(s)...\n")
 
     for alert in alerts:
