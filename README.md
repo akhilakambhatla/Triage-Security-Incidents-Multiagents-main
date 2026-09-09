@@ -39,15 +39,31 @@ A multi-agent security alert triage system built with **LangGraph**. It automate
 # Install
 pip install -e ".[dev]"
 
-# Set OpenAI key (for LLM agents)
-export OPENAI_API_KEY=sk-...
+# Authenticate to GCP (for LLM agents) — see "Gemini via Vertex AI" below
+gcloud auth application-default login
+export GOOGLE_CLOUD_PROJECT=your-gcp-project-id
+export GOOGLE_CLOUD_LOCATION=us-central1
 
-# Run tests (no API key needed - tests cover models, routing, and knowledge base)
+# Run tests (no GCP auth needed - tests cover models, routing, and knowledge base)
 pytest -v
 
-# Run demo (requires API key)
+# Run demo (requires GCP auth)
 python -m src.demo
 ```
+
+### Gemini via Vertex AI
+
+This project calls Gemini through Vertex AI using Application Default Credentials (ADC) instead of an API key — some GCP orgs disable API key creation by policy, so this works everywhere. One-time setup:
+
+1. Pick or create a GCP project, then enable the Vertex AI API:
+   `gcloud services enable aiplatform.googleapis.com --project=your-gcp-project-id`
+2. Authenticate your local machine for ADC:
+   `gcloud auth application-default login`
+3. Export the project and region the agents should use:
+   `export GOOGLE_CLOUD_PROJECT=your-gcp-project-id`
+   `export GOOGLE_CLOUD_LOCATION=us-central1`
+
+No key ever touches the codebase or `.env` — `ChatVertexAI` picks up ADC automatically.
 
 ## Project Structure
 
@@ -77,7 +93,7 @@ The demo includes three realistic enterprise scenarios:
 - **LangGraph** — Multi-agent orchestration with conditional routing and state management
 - **LangChain** — LLM integration with structured output parsing
 - **Pydantic** — Type-safe data models across the pipeline
-- **OpenAI GPT-4o-mini** — Agent reasoning (swappable for any LangChain-compatible LLM)
+- **Gemini via Vertex AI (gemini-2.0-flash)** — Agent reasoning, authenticated with ADC (swappable for any LangChain-compatible LLM)
 
 ## Why This Exists
 

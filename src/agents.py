@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from langchain_openai import ChatOpenAI
+from langchain_google_vertexai import ChatVertexAI
 from langchain_core.messages import SystemMessage, HumanMessage
 
 from .models import (
@@ -16,9 +16,13 @@ from .models import (
 from .knowledge_base import get_playbook, search_playbooks
 
 
-def get_llm(model: str = "gpt-4o-mini", temperature: float = 0.1) -> ChatOpenAI:
-    """Get configured LLM instance."""
-    return ChatOpenAI(model=model, temperature=temperature)
+def get_llm(model: str = "gemini-2.0-flash", temperature: float = 0.1) -> ChatVertexAI:
+    """Get configured LLM instance.
+
+    Authenticates via Application Default Credentials (ADC) rather than an
+    API key, since GCP org policy may disallow API key creation.
+    """
+    return ChatVertexAI(model=model, temperature=temperature)
 
 
 # --- Classifier Agent ---
