@@ -1,8 +1,6 @@
-# Security Triage Agent
+# Triage Security Incidents (Multi-Agent)
 
-Multi-agent security alert triage system built with **LangGraph**. Automates the SOC analyst workflow: classify → investigate → remediate, with human-in-the-loop escalation for high-risk decisions.
-
-Built from real-world experience deploying automated security remediation systems at AWS for Fortune 50 financial institutions.
+A multi-agent security alert triage system built with **LangGraph**. It automates the SOC analyst workflow — classify → investigate → remediate — with human-in-the-loop escalation for high-risk decisions.
 
 ## Architecture
 
@@ -83,4 +81,4 @@ The demo includes three realistic enterprise scenarios:
 
 ## Why This Exists
 
-Security operations teams handle hundreds of alerts daily. Most are noise. The critical ones need fast, accurate triage. This system demonstrates how a multi-agent architecture can automate the repetitive classification and investigation work while keeping humans in the loop for high-stakes decisions — the same pattern used in production at enterprise scale.
+Security operations teams handle hundreds of alerts daily. Most are noise. The critical ones need fast, accurate triage. This system demonstrates how a multi-agent architecture can automate the repetitive classification and investigation work while keeping humans in the loop for high-stakes decisions.
