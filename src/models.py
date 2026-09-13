@@ -68,6 +68,38 @@ class Remediation(BaseModel):
     approval_reason: str = ""
 
 
+class ThreatIntelMatch(BaseModel):
+    """A single indicator that matched a threat intelligence source."""
+
+    indicator: str
+    indicator_type: str = Field(description="e.g., ip, domain, hash, asn")
+    matched: bool
+    threat_type: str = ""
+    source: str = Field(default="local_feed", description="Which feed produced the match")
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    description: str = ""
+
+
+class ThreatIntelligence(BaseModel):
+    """Output of the threat intel agent."""
+
+    matches: list[ThreatIntelMatch] = Field(default_factory=list)
+    risk_elevated: bool = Field(
+        default=False, description="Whether IOC matches should raise the alert's severity"
+    )
+    summary: str = ""
+
+
+class RootCauseAnalysis(BaseModel):
+    """Output of the root cause analysis agent (post-remediation)."""
+
+    root_cause: str
+    contributing_factors: list[str] = Field(default_factory=list)
+    timeline: list[str] = Field(default_factory=list)
+    lessons_learned: list[str] = Field(default_factory=list)
+    prevention_recommendations: list[str] = Field(default_factory=list)
+
+
 class TriageResult(BaseModel):
     """Final triage output combining all agent outputs."""
 
@@ -75,5 +107,7 @@ class TriageResult(BaseModel):
     classification: Classification
     investigation: Investigation
     remediation: Remediation
+    threat_intel: ThreatIntelligence | None = None
+    root_cause_analysis: RootCauseAnalysis | None = None
     human_decision: str = ""
     status: str = "pending"

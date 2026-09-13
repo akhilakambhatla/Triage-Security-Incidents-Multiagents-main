@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 
+from langgraph.types import Command
 from rich.console import Console
 from rich.panel import Panel
+from rich.prompt import Confirm, Prompt
 from rich.table import Table
 from rich.text import Text
 
@@ -77,8 +80,16 @@ def print_alert(alert: SecurityAlert) -> None:
 def print_result(state: dict) -> None:
     """Pretty-print triage results."""
     classification = state.get("classification")
+    threat_intel = state.get("threat_intel")
     investigation = state.get("investigation")
     remediation = state.get("remediation")
+    rca = state.get("root_cause_analysis")
+
+    # Threat intel
+    if threat_intel and threat_intel.matches:
+        console.print(f"\n[bold]Threat Intel:[/bold] [yellow]{threat_intel.summary}[/yellow]")
+        for m in threat_intel.matches:
+            console.print(f"  - {m.indicator} ({m.threat_type}, confidence={m.confidence:.0%}, source={m.source})")
 
     # Classification
     if classification:
@@ -118,18 +129,44 @@ def print_result(state: dict) -> None:
         if remediation.requires_human_approval:
             console.print(f"  [yellow]Needs approval: {remediation.approval_reason}[/yellow]")
 
+    # Root cause analysis
+    if rca:
+        console.print(f"\n[bold]Root Cause Analysis:[/bold]")
+        console.print(f"  Root cause: {rca.root_cause}")
+        for factor in rca.contributing_factors:
+            console.print(f"  - Contributing: {factor}")
+        for rec in rca.prevention_recommendations:
+            console.print(f"  [cyan]Prevent:[/cyan] {rec}")
+
     # Final status
     status = state.get("status", "unknown")
     decision = state.get("human_decision", "")
-    status_color = "red" if "human" in status else "green"
+    status_color = "red" if "reject" in status else ("yellow" if "approv" in status else "green")
     console.print(f"\n[bold]Status:[/bold] [{status_color}]{status}[/{status_color}]")
     if decision:
         console.print(f"  {decision}")
     console.print("=" * 60)
 
 
-async def run_demo(alert_index: int | None = None) -> None:
-    """Run the triage demo on sample alerts."""
+def _print_interrupt(payload: dict) -> None:
+    console.print(Panel(
+        f"[bold]{payload.get('prompt', 'Human decision needed')}[/bold]\n\n"
+        f"[dim]Stage:[/dim] {payload.get('stage')}\n"
+        f"[dim]Reason:[/dim] {payload.get('reason')}",
+        title=f"⏸ PAUSED — Alert {payload.get('alert_id')}",
+        border_style="magenta",
+    ))
+
+
+async def run_demo(alert_index: int | None = None, interactive: bool = False) -> None:
+    """Run the triage demo on sample alerts.
+
+    Args:
+        alert_index: run only this sample alert (0-indexed), or all if None.
+        interactive: if True, actually prompt for approve/reject at each
+            human-review pause. If False (default), auto-approves every
+            escalation so the demo can run end-to-end unattended.
+    """
     app = compile_triage_graph()
 
     alerts = [SAMPLE_ALERTS[alert_index]] if alert_index is not None else SAMPLE_ALERTS
@@ -143,20 +180,53 @@ async def run_demo(alert_index: int | None = None) -> None:
         initial_state: TriageState = {
             "alert": alert,
             "classification": None,
+            "threat_intel": None,
             "investigation": None,
             "remediation": None,
+            "root_cause_analysis": None,
             "human_decision": "",
             "status": "pending",
         }
 
-        console.print("[dim]Running triage pipeline: classify → investigate → remediate...[/dim]")
-        result = await app.ainvoke(initial_state)
+        config = {"configurable": {"thread_id": alert.alert_id}}
+
+        console.print(
+            "[dim]Running triage pipeline: classify → threat_intel → investigate → remediate...[/dim]"
+        )
+        result = await app.ainvoke(initial_state, config=config)
+
+        # Drain any human-review interrupts, resuming the graph each time.
+        while "__interrupt__" in result:
+            pending = result["__interrupt__"][0]
+            _print_interrupt(pending.value)
+
+            if interactive:
+                approved = Confirm.ask("Approve?", default=True)
+                notes = Prompt.ask("Notes", default="")
+            else:
+                approved, notes = True, "auto-approved by demo runner"
+                console.print("[dim](non-interactive demo: auto-approving — pass --interactive to decide manually)[/dim]")
+
+            result = await app.ainvoke(
+                Command(resume={"approved": approved, "notes": notes}), config=config
+            )
+
         print_result(result)
 
 
 def main():
     """Entry point."""
-    asyncio.run(run_demo())
+    parser = argparse.ArgumentParser(description="Run the security triage multi-agent demo.")
+    parser.add_argument(
+        "--interactive", action="store_true",
+        help="Prompt for approve/reject at each human-review pause instead of auto-approving.",
+    )
+    parser.add_argument(
+        "--alert", type=int, default=None,
+        help="Run only the sample alert at this index (0-based).",
+    )
+    args = parser.parse_args()
+    asyncio.run(run_demo(alert_index=args.alert, interactive=args.interactive))
 
 
 if __name__ == "__main__":
