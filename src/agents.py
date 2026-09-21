@@ -21,7 +21,7 @@ from .threat_intel import lookup_indicators
 from .vector_store import retrieve_semantic_context
 
 
-def get_llm(model: str = "gemini-2.0-flash", temperature: float = 0.1) -> ChatVertexAI:
+def get_llm(model: str = "gemini-2.5-flash", temperature: float = 0.1) -> ChatVertexAI:
     """Get configured LLM instance.
 
     Authenticates via Application Default Credentials (ADC) rather than an

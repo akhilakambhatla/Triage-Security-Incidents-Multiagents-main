@@ -130,7 +130,7 @@ The demo includes three realistic enterprise scenarios:
 - **LangGraph** — Multi-agent orchestration, conditional routing, state management, and real interrupt/resume checkpointing
 - **LangChain** — LLM integration with structured output parsing, `InMemoryVectorStore` for RAG
 - **Pydantic** — Type-safe data models across the pipeline
-- **Gemini via Vertex AI (gemini-2.0-flash)** — Agent reasoning, authenticated with ADC (swappable for any LangChain-compatible LLM)
+- **Gemini via Vertex AI (gemini-2.5-flash)** — Agent reasoning, authenticated with ADC (swappable for any LangChain-compatible LLM)
 - **Vertex AI Embeddings (text-embedding-005)** — Semantic retrieval over the playbook knowledge base
 - **requests** — Slack webhook delivery for escalation notifications (optional)
 
