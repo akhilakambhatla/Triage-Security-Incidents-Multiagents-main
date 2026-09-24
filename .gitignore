@@ -9,3 +9,4 @@ dist/
 .DS_Store
 audit_log.jsonl
 tests/demo-output-triage-security-incidents-multiagent
+.coverage
